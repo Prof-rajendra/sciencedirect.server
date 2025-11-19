@@ -4,24 +4,42 @@ const Cited = require("../models/Cited.js");
 const Admin = require("../models/Admin.js");
 const jwt = require("jsonwebtoken");
 
-exports.login = (req, res) => {
+exports.login = async (req, res) => {
     const { username, password } = req.body;
-    
-     if (!username || !password) {
-      return res.status(400).json({ message: "Username and password are required." });
+
+    if (!username || !password) {
+        return res.status(400).json({ message: "Username and password are required." });
     }
 
-    const checkAdmin = Admin.findOne({ where: { username } })
-    if (!checkAdmin) {
-        return res.status(401).json({ message: "Admin dosen't exists." });
+    try {
+        const checkAdmin = await Admin.findOne({ where: { username } });
+
+        if (!checkAdmin) {
+            return res.status(401).json({ message: "Admin doesn't exist." });
         }
 
-    if (checkAdmin.password !== password) {
-      return res.status(401).json({ message: "Invalid username or password." });
+        // If using plaintext (not recommended)
+        // if (checkAdmin.password !== password) {
+        //     return res.status(401).json({ message: "Invalid username or password." });
+        // }
+
+        // If using hashed passwords
+        const validPassword = await bcrypt.compare(password, checkAdmin.password);
+        if (!validPassword) {
+            return res.status(401).json({ message: "Invalid username or password." });
+        }
+
+        const token = jwt.sign(
+            { id: checkAdmin.id, username: checkAdmin.username },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
+
+        res.status(200).json({ message: "Login successful", token });
+
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
     }
-    
-    const token = jwt.sign({ id: checkAdmin.id, username: checkAdmin.username }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.status(200).json({ message: "Login successful", token });
 };
 
 exports.createArticle = async (req, res) => {
