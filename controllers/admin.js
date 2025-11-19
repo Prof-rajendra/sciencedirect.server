@@ -3,6 +3,7 @@ const Reference = require("../models/Reference.js");
 const Cited = require("../models/Cited.js");
 const Admin = require("../models/Admin.js");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 exports.login = async (req, res) => {
     const { username, password } = req.body;
