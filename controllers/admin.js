@@ -186,3 +186,27 @@ exports.deleteArticleById = async (req, res) => {
     });
   }
 };
+
+exports.createAdmin = async (req, res) => {
+  try {
+    const { name, username, password } = req.body;
+    if (!name || !username || !password) {
+      return res.status(400).json({ message: "Name, username, and password are required." });
+    }
+    // Check if username already exists
+    const existingAdmin = await Admin.findOne({ where: { username } });
+    if (existingAdmin) {
+      return res.status(409).json({ message: "Username already exists." });
+    }
+    const newAdmin = await Admin.create({ name, username, password });
+    res.status(201).json({
+      message: "Admin created successfully",
+      admin: { id: newAdmin.id, name: newAdmin.name, username: newAdmin.username }
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
