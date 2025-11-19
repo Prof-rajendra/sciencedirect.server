@@ -12,14 +12,14 @@ exports.login = (req, res) => {
     }
 
     const checkAdmin = Admin.findOne({ where: { username } })
-
-    if (checkAdmin) {
-        return res.status(401).json({ message: "Admin already exists." });
+    if (!checkAdmin) {
+        return res.status(401).json({ message: "Admin dosen't exists." });
         }
-    if (checkAdmin.password !== password) {
-        return res.status(401).json({ message: "Invalid username or password." });
-    }
 
+    if (checkAdmin.password !== password) {
+      return res.status(401).json({ message: "Invalid username or password." });
+    }
+    
     const token = jwt.sign({ id: checkAdmin.id, username: checkAdmin.username }, process.env.JWT_SECRET, { expiresIn: "1h" });
     res.status(200).json({ message: "Login successful", token });
 };
