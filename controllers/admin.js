@@ -13,8 +13,8 @@ exports.login = (req, res) => {
 
     const checkAdmin = Admin.findOne({ where: { username } })
 
-    if (!checkAdmin) {
-        return res.status(401).json({ message: "Invalid username or password." });
+    if (checkAdmin) {
+        return res.status(401).json({ message: "Admin already exists." });
         }
     if (checkAdmin.password !== password) {
         return res.status(401).json({ message: "Invalid username or password." });

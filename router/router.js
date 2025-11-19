@@ -6,9 +6,9 @@ router.post('/articles', authMiddleware, createArticle );
 router.get('/articles', getAllArticles );
 router.get('/articles/:id', getArticleById );
 router.post('/admin', createAdmin);
+router.post('/login', login );
 
 router.get('/', (req, res) => {
     res.send('Admin Router is working');
 });
-router.post('/login', login );
 module.exports = router;
