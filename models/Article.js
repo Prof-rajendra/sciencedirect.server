@@ -43,13 +43,13 @@ const Article = sequelize.define("Article", {
         allowNull: false,
     },
     highlight: {
-        type: DataTypes.ARRAY(DataTypes.STRING)
+        type: DataTypes.ARRAY(DataTypes.STRING),
     },
     introduction: {
-        type: DataTypes.ARRAY(DataTypes.STRING)
+        type: DataTypes.STRING,
     },
     abstract: {
-        type: DataTypes.ARRAY(DataTypes.STRING)
+        type: DataTypes.STRING,
     },
 })
 
