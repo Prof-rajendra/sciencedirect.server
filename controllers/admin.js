@@ -181,7 +181,7 @@ exports.getArticleById = async (req, res) => {
       });
     }
     res.status(200).json({
-      article,
+      article: article[0],
     });
   } catch (error) {
     res.status(500).json({
