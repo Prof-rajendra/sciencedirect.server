@@ -66,6 +66,8 @@ exports.createArticle = async (req, res) => {
       cited_title,
       cited_host,
     } = req.body;
+
+    // Validate required fields
     if (
       !journalTitle ||
       !title ||
@@ -88,9 +90,11 @@ exports.createArticle = async (req, res) => {
       !cited_host
     ) {
       return res.status(400).json({
-        message: "Title, content, author etc are required",
+        message: "All fields are required",
       });
     }
+
+    // Create Article
     const newArticle = new Article({
       journalTitle,
       title,
@@ -107,26 +111,30 @@ exports.createArticle = async (req, res) => {
       special_issue_title,
       special_issue_content,
     });
-    
+
+    // Save article first
+    const savedArticle = await newArticle.save();
+
+    // Now create Reference with articleId
     const newReference = new Reference({
       reference_author,
       reference_title,
       reference_host,
-      articleId: newArticle.id,
+      articleId: savedArticle._id,
     });
 
     const newCited = new Cited({
       cited_title,
       cited_host,
-      articleId: newArticle.id,
+      articleId: savedArticle._id,
     });
 
-    await newArticle.save();
     await newReference.save();
     await newCited.save();
+
     res.status(201).json({
       message: "Article created successfully",
-      article: newArticle,
+      article: savedArticle,
       reference: newReference,
       cited: newCited,
     });
