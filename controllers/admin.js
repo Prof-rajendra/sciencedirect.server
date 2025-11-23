@@ -118,13 +118,13 @@ exports.createArticle = async (req, res) => {
       reference_author,
       reference_title,
       reference_host,
-      articleId: savedArticle._id,
+      articleId: savedArticle.id,
     });
 
     const newCited = new Cited({
       cited_title,
       cited_host,
-      articleId: savedArticle._id,
+      articleId: savedArticle.id,
     });
 
     await newReference.save();
