@@ -118,6 +118,26 @@ exports.createArticle = async (req, res) => {
         abstract,
         issue_title,
         issue_author_details
+        },
+        transaction
+      });
+
+      if (!created) {
+        // Update existing article
+        await article.update({
+          journalTitle,
+          coverImage,
+          volume,
+          part,
+          date,
+          authors,
+          authors_university,
+          link,
+          highlight,
+          introduction,
+          abstract,
+          issue_title,
+          issue_author_details
       }, { transaction });
 
       // Update or create Reference for this article
