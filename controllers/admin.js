@@ -65,6 +65,8 @@ exports.createArticle = async (req, res) => {
       reference_host,
       cited_title,
       cited_host,
+      issue_title,               // added
+      issue_author_details       // added
     } = req.body;
 
     // Validate required fields
@@ -116,6 +118,8 @@ exports.createArticle = async (req, res) => {
         abstract,
         special_issue_title,
         special_issue_content,
+        issue_title,               // added
+        issue_author_details       // added
       });
 
       // Update Reference
@@ -168,6 +172,8 @@ exports.createArticle = async (req, res) => {
       abstract,
       special_issue_title,
       special_issue_content,
+      issue_title,               // added
+      issue_author_details       // added
     });
 
     const savedArticle = await newArticle.save();
