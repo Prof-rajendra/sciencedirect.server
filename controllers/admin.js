@@ -164,25 +164,27 @@ exports.getAllArticles = async (req, res) => {
   }
 };
 
-// Get article by ID
 exports.getArticleById = async (req, res) => {
   try {
     const { id } = req.params;
+
     const article = await Article.findByPk(id, {
       include: [
         { model: Reference, as: "references" },
         { model: Cited, as: "cited" },
       ],
-      distinct: true,
     });
+
     if (!article) {
       return res.status(404).json({
         message: "Article not found",
       });
     }
+
     res.status(200).json({
-      article: article[0],
+      article,
     });
+
   } catch (error) {
     res.status(500).json({
       message: "Server error",
@@ -190,6 +192,7 @@ exports.getArticleById = async (req, res) => {
     });
   }
 };
+
 
 // Delete article by ID
 exports.deleteArticleById = async (req, res) => {
