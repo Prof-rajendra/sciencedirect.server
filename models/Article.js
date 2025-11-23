@@ -29,7 +29,7 @@ const Article = sequelize.define("Article", {
         allowNull: false,
     },
     date: {
-        type: DataTypes.DATE,
+        type: DataTypes.STRING,
         allowNull: false,
     },
     authors: {
