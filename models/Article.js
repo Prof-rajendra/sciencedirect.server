@@ -51,6 +51,12 @@ const Article = sequelize.define("Article", {
     abstract: {
         type: DataTypes.TEXT,
     },
+    issue_title: {
+        type: DataTypes.STRING,
+    },
+    issue_author_details:{
+        type: DataTypes.STRING,
+    }
 })
 
 module.exports = Article;
