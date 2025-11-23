@@ -67,7 +67,7 @@ exports.createArticle = async (req, res) => {
       issue_author_details
     } = req.body;
 
-    // Validate required fields (issue_title and issue_author_details are optional)
+    // Validate required fields (keep as before)
     if (
       !journalTitle ||
       !title ||
@@ -90,98 +90,88 @@ exports.createArticle = async (req, res) => {
       });
     }
 
-    const existingArticle = await Article.findOne({
-      where: { title },
-    });
+    // Normalize title to reduce accidental duplicates (trim)
+    const normalizedTitle = title.trim();
 
-    if (existingArticle) {
-      await existingArticle.update({
-        journalTitle,
-        title,
-        coverImage,
-        volume,
-        part,
-        date,
-        authors,
-        authors_university,
-        link,
-        highlight,
-        introduction,
-        abstract,
-        issue_title,
-        issue_author_details
+    // Use a transaction + findOrCreate to avoid race conditions
+    const transaction = await Article.sequelize.transaction();
+    try {
+      const [article, created] = await Article.findOrCreate({
+        where: { title: normalizedTitle },
+        defaults: {
+          journalTitle,
+          title: normalizedTitle,
+          coverImage,
+          volume,
+          part,
+          date,
+          authors,
+          authors_university,
+          link,
+          highlight,
+          introduction,
+          abstract,
+          issue_title,
+          issue_author_details
+        },
+        transaction
       });
 
-      const existingReference = await Reference.findOne({
-        where: { articleId: existingArticle.id },
-      });
-
-      if (existingReference) {
-        await existingReference.update({
-          reference_author,
-          reference_title,
-          reference_host,
-        });
+      if (!created) {
+        // Update existing article
+        await article.update({
+          journalTitle,
+          coverImage,
+          volume,
+          part,
+          date,
+          authors,
+          authors_university,
+          link,
+          highlight,
+          introduction,
+          abstract,
+          issue_title,
+          issue_author_details
+        }, { transaction });
       }
 
-      const existingCited = await Cited.findOne({
-        where: { articleId: existingArticle.id },
+      // handle Reference
+      const [reference] = await Reference.findOrCreate({
+        where: { articleId: article.id },
+        defaults: { reference_author, reference_title, reference_host, articleId: article.id },
+        transaction
       });
-
-      if (existingCited) {
-        await existingCited.update({
-          cited_title,
-          cited_host,
-        });
+      if (!reference.reference_author) {
+        await reference.update({ reference_author, reference_title, reference_host }, { transaction });
       }
 
-      return res.status(200).json({
-        message: "Article updated successfully",
-        article: existingArticle,
+      // handle Cited
+      const [cited] = await Cited.findOrCreate({
+        where: { articleId: article.id },
+        defaults: { cited_title, cited_host, articleId: article.id },
+        transaction
       });
+      if (!cited.cited_title) {
+        await cited.update({ cited_title, cited_host }, { transaction });
+      }
+
+      await transaction.commit();
+
+      return res.status(created ? 201 : 200).json({
+        message: created ? "Article created successfully" : "Article updated successfully",
+        article,
+        reference,
+        cited,
+      });
+    } catch (err) {
+      await transaction.rollback();
+      // Unique constraint errors may still happen under race conditions
+      if (err.name === 'SequelizeUniqueConstraintError') {
+        return res.status(409).json({ message: 'Article with this title already exists' });
+      }
+      throw err;
     }
-
-    const newArticle = new Article({
-      journalTitle,
-      title,
-      coverImage,
-      volume,
-      part,
-      date,
-      authors,
-      authors_university,
-      link,
-      highlight,
-      introduction,
-      abstract,
-      issue_title,
-      issue_author_details
-    });
-
-    const savedArticle = await newArticle.save();
-
-    const newReference = new Reference({
-      reference_author,
-      reference_title,
-      reference_host,
-      articleId: savedArticle.id,
-    });
-
-    const newCited = new Cited({
-      cited_title,
-      cited_host,
-      articleId: savedArticle.id,
-    });
-
-    await newReference.save();
-    await newCited.save();
-
-    res.status(201).json({
-      message: "Article created successfully",
-      article: savedArticle,
-      reference: newReference,
-      cited: newCited,
-    });
 
   } catch (error) {
     res.status(500).json({

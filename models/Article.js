@@ -15,6 +15,7 @@ const Article = sequelize.define("Article", {
     title: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: true // added: ensure DB enforces uniqueness
     },
     coverImage: {
         type: DataTypes.STRING,
