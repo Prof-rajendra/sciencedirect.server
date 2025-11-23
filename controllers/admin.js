@@ -85,9 +85,7 @@ exports.createArticle = async (req, res) => {
       !special_issue_content ||
       !reference_author ||
       !reference_title ||
-      !reference_host ||
-      !cited_title ||
-      !cited_host
+      !reference_host 
     ) {
       return res.status(400).json({
         message: "All fields are required",
