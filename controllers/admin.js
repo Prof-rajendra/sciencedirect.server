@@ -58,18 +58,16 @@ exports.createArticle = async (req, res) => {
       highlight,
       introduction,
       abstract,
-      special_issue_title,
-      special_issue_content,
       reference_author,
       reference_title,
       reference_host,
       cited_title,
       cited_host,
-      issue_title,               // added
-      issue_author_details       // added
+      issue_title,
+      issue_author_details
     } = req.body;
 
-    // Validate required fields
+    // Validate required fields (issue_title and issue_author_details are optional)
     if (
       !journalTitle ||
       !title ||
@@ -83,25 +81,19 @@ exports.createArticle = async (req, res) => {
       !highlight ||
       !introduction ||
       !abstract ||
-      !special_issue_title ||
-      !special_issue_content ||
       !reference_author ||
       !reference_title ||
       !reference_host
     ) {
       return res.status(400).json({
-        message: "All fields are required",
+        message: "All required fields are missing or invalid",
       });
     }
 
-    // ► 1. Check if article already exists (by title – you can change this condition)
     const existingArticle = await Article.findOne({
       where: { title },
     });
 
-    // ======================================
-    //       UPDATE EXISTING ARTICLE
-    // ======================================
     if (existingArticle) {
       await existingArticle.update({
         journalTitle,
@@ -116,13 +108,10 @@ exports.createArticle = async (req, res) => {
         highlight,
         introduction,
         abstract,
-        special_issue_title,
-        special_issue_content,
-        issue_title,               // added
-        issue_author_details       // added
+        issue_title,
+        issue_author_details
       });
 
-      // Update Reference
       const existingReference = await Reference.findOne({
         where: { articleId: existingArticle.id },
       });
@@ -135,7 +124,6 @@ exports.createArticle = async (req, res) => {
         });
       }
 
-      // Update Cited
       const existingCited = await Cited.findOne({
         where: { articleId: existingArticle.id },
       });
@@ -153,10 +141,6 @@ exports.createArticle = async (req, res) => {
       });
     }
 
-    // ======================================
-    //       CREATE NEW ARTICLE
-    // ======================================
-
     const newArticle = new Article({
       journalTitle,
       title,
@@ -170,10 +154,8 @@ exports.createArticle = async (req, res) => {
       highlight,
       introduction,
       abstract,
-      special_issue_title,
-      special_issue_content,
-      issue_title,               // added
-      issue_author_details       // added
+      issue_title,
+      issue_author_details
     });
 
     const savedArticle = await newArticle.save();

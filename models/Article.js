@@ -55,7 +55,7 @@ const Article = sequelize.define("Article", {
         type: DataTypes.STRING,
     },
     issue_author_details:{
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
     }
 })
 
