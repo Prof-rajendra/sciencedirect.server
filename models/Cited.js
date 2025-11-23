@@ -5,20 +5,16 @@ const Cited = sequelize.define("Cited", {
     cited_id: {
          type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
-        allowNull: false,
         primaryKey: true
     },
     cited_title: {
-        type: DataTypes.STRING,
-        allowNull: false,
+        type: DataTypes.ARRAY(DataTypes.STRING),
     },
     cited_host: {
-        type: DataTypes.STRING,
-        allowNull: false,
+        type: DataTypes.ARRAY(DataTypes.STRING),
     },
     articleId: {
         type: DataTypes.UUID,
-        allowNull: false,
     }
 })
 

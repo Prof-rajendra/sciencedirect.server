@@ -25,6 +25,8 @@ async function run_connection() {
     }
 }
 
+
+
 require("./models/index")
 
 // ✅ Run DB connection

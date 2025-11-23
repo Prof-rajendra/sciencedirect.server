@@ -5,24 +5,19 @@ const Reference = sequelize.define("Reference", {
     reference_id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
-        allowNull: false,
         primaryKey: true
     },
     reference_author: {
-        type: DataTypes.STRING,
-        allowNull: false,
+        type: DataTypes.ARRAY(DataTypes.STRING),
     }, 
     reference_title: {
-        type: DataTypes.STRING,
-        allowNull: false,
+        type: DataTypes.ARRAY(DataTypes.STRING),
     },
     reference_host: {
-        type: DataTypes.STRING,
-        allowNull: false,
+        type: DataTypes.ARRAY(DataTypes.STRING),
     },
     articleId: {
         type: DataTypes.UUID,
-        allowNull: false,
     }
 })
 
