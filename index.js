@@ -17,8 +17,6 @@ app.use(router); // Ensure 'router' is a valid Express Router
 //  Database connection function
 async function run_connection() {
     try {
-        await sequelize.sync({ force: true });
-
         await sequelize.authenticate();
         console.log('✅ Database connected successfully.');
     } catch (error) {
