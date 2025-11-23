@@ -85,14 +85,74 @@ exports.createArticle = async (req, res) => {
       !special_issue_content ||
       !reference_author ||
       !reference_title ||
-      !reference_host 
+      !reference_host
     ) {
       return res.status(400).json({
         message: "All fields are required",
       });
     }
 
-    // Create Article
+    // ► 1. Check if article already exists (by title – you can change this condition)
+    const existingArticle = await Article.findOne({
+      where: { title },
+    });
+
+    // ======================================
+    //       UPDATE EXISTING ARTICLE
+    // ======================================
+    if (existingArticle) {
+      await existingArticle.update({
+        journalTitle,
+        title,
+        coverImage,
+        volume,
+        part,
+        date,
+        authors,
+        authors_university,
+        link,
+        highlight,
+        introduction,
+        abstract,
+        special_issue_title,
+        special_issue_content,
+      });
+
+      // Update Reference
+      const existingReference = await Reference.findOne({
+        where: { articleId: existingArticle.id },
+      });
+
+      if (existingReference) {
+        await existingReference.update({
+          reference_author,
+          reference_title,
+          reference_host,
+        });
+      }
+
+      // Update Cited
+      const existingCited = await Cited.findOne({
+        where: { articleId: existingArticle.id },
+      });
+
+      if (existingCited) {
+        await existingCited.update({
+          cited_title,
+          cited_host,
+        });
+      }
+
+      return res.status(200).json({
+        message: "Article updated successfully",
+        article: existingArticle,
+      });
+    }
+
+    // ======================================
+    //       CREATE NEW ARTICLE
+    // ======================================
+
     const newArticle = new Article({
       journalTitle,
       title,
@@ -110,10 +170,8 @@ exports.createArticle = async (req, res) => {
       special_issue_content,
     });
 
-    // Save article first
     const savedArticle = await newArticle.save();
 
-    // Now create Reference with articleId
     const newReference = new Reference({
       reference_author,
       reference_title,
@@ -136,6 +194,7 @@ exports.createArticle = async (req, res) => {
       reference: newReference,
       cited: newCited,
     });
+
   } catch (error) {
     res.status(500).json({
       message: "Server error",
@@ -143,6 +202,7 @@ exports.createArticle = async (req, res) => {
     });
   }
 };
+
 
 // Get all articles
 exports.getAllArticles = async (req, res) => {
