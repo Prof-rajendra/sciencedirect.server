@@ -173,6 +173,7 @@ exports.getArticleById = async (req, res) => {
         { model: Reference, as: "references" },
         { model: Cited, as: "cited" },
       ],
+      distinct: true,
     });
     if (!article) {
       return res.status(404).json({
