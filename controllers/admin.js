@@ -90,85 +90,73 @@ exports.createArticle = async (req, res) => {
       });
     }
 
-    // Normalize title to reduce accidental duplicates (trim)
     const normalizedTitle = title.trim();
 
-    // Use a transaction + findOrCreate to avoid race conditions
+    // Find existing article — do not create a new one
+    const existingArticle = await Article.findOne({ where: { title: normalizedTitle } });
+    if (!existingArticle) {
+      return res.status(404).json({
+        message: "Article not found. This endpoint only updates existing articles.",
+      });
+    }
+
     const transaction = await Article.sequelize.transaction();
     try {
-      const [article, created] = await Article.findOrCreate({
-        where: { title: normalizedTitle },
-        defaults: {
-          journalTitle,
-          title: normalizedTitle,
-          coverImage,
-          volume,
-          part,
-          date,
-          authors,
-          authors_university,
-          link,
-          highlight,
-          introduction,
-          abstract,
-          issue_title,
-          issue_author_details
-        },
-        transaction
-      });
+      // Update article columns
+      const updatedArticle = await existingArticle.update({
+        journalTitle,
+        title: normalizedTitle,
+        coverImage,
+        volume,
+        part,
+        date,
+        authors,
+        authors_university,
+        link,
+        highlight,
+        introduction,
+        abstract,
+        issue_title,
+        issue_author_details
+      }, { transaction });
 
-      if (!created) {
-        // Update existing article
-        await article.update({
-          journalTitle,
-          coverImage,
-          volume,
-          part,
-          date,
-          authors,
-          authors_university,
-          link,
-          highlight,
-          introduction,
-          abstract,
-          issue_title,
-          issue_author_details
+      // Update or create Reference for this article
+      let reference = await Reference.findOne({ where: { articleId: updatedArticle.id }, transaction });
+      if (reference) {
+        await reference.update({ reference_author, reference_title, reference_host }, { transaction });
+      } else {
+        reference = await Reference.create({
+          reference_author,
+          reference_title,
+          reference_host,
+          articleId: updatedArticle.id
         }, { transaction });
       }
 
-      // handle Reference
-      const [reference] = await Reference.findOrCreate({
-        where: { articleId: article.id },
-        defaults: { reference_author, reference_title, reference_host, articleId: article.id },
-        transaction
-      });
-      if (!reference.reference_author) {
-        await reference.update({ reference_author, reference_title, reference_host }, { transaction });
-      }
-
-      // handle Cited
-      const [cited] = await Cited.findOrCreate({
-        where: { articleId: article.id },
-        defaults: { cited_title, cited_host, articleId: article.id },
-        transaction
-      });
-      if (!cited.cited_title) {
+      // Update or create Cited for this article
+      let cited = await Cited.findOne({ where: { articleId: updatedArticle.id }, transaction });
+      if (cited) {
         await cited.update({ cited_title, cited_host }, { transaction });
+      } else {
+        cited = await Cited.create({
+          cited_title,
+          cited_host,
+          articleId: updatedArticle.id
+        }, { transaction });
       }
 
       await transaction.commit();
 
-      return res.status(created ? 201 : 200).json({
-        message: created ? "Article created successfully" : "Article updated successfully",
-        article,
+      return res.status(200).json({
+        message: "Article updated successfully",
+        article: updatedArticle,
         reference,
         cited,
       });
     } catch (err) {
       await transaction.rollback();
-      // Unique constraint errors may still happen under race conditions
       if (err.name === 'SequelizeUniqueConstraintError') {
-        return res.status(409).json({ message: 'Article with this title already exists' });
+        return res.status(409).json({ message: 'Conflict updating article (unique constraint).' });
       }
       throw err;
     }
@@ -189,6 +177,10 @@ exports.getAllArticles = async (req, res) => {
       include: [
         { model: Reference, as: "references" },
         { model: Cited, as: "cited" },
+      ],
+      order: [
+        ["updatedAt", "DESC"],
+        ["createdAt", "DESC"]
       ],
     });
     res.status(200).json({
