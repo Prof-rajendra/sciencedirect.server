@@ -33,7 +33,7 @@ exports.login = async (req, res) => {
         const token = jwt.sign(
             { id: checkAdmin.id, username: checkAdmin.username },
             process.env.JWT_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "6h" }
         );
 
         res.status(200).json({ message: "Login successful", token });
@@ -73,7 +73,6 @@ exports.createArticle = async (req, res) => {
       !title ||
       !coverImage ||
       !volume ||
-      !part ||
       !date ||
       !authors ||
       !authors_university ||

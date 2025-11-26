@@ -22,12 +22,11 @@ const Article = sequelize.define("Article", {
         allowNull: false,
     },
     volume: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         allowNull: false,
     },
     part: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
+        type: DataTypes.STRING,
     },
     date: {
         type: DataTypes.STRING,
